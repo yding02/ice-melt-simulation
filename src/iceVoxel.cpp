@@ -5,6 +5,7 @@ IceVoxel::IceVoxel(float temperature, float state, float volume) {
 	this->temperature = temperature;
 	this->state = state;
 	this->volume = volume;
+	prev_state = state;
 }
 
 IceVoxel::~IceVoxel() {
@@ -16,7 +17,7 @@ void IceVoxel::simulate(float timestep, float power) {
 	if (state <= 0) {
 		return;
 	}
-
+	
 	float energy = timestep * power;
 	if (temperature < melting_point) {
 		float temp_change = energy / specific_heat / (volume * density);

@@ -13,8 +13,10 @@ struct IceVoxel {
 	//Ice properties
 	float temperature;
 	float state;
+	float prev_state;
 	float volume;
 	bool  surface;
+	bool  prev_surface;
 	const float melting_point = 273; // K
 	const float fusion_enthalpy = 333.55; // J/g
 	const float density = 0.9167; // g/cm^3
