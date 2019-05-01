@@ -125,7 +125,7 @@ void Ice::simulate() {
 					}
 
 					float surface_area = (6 - num_neighbors) * voxel_edge_length * voxel_edge_length;
-					float work = surface_area * (ambient_temerature - v.temperature);
+					float work = air_transfer_coeff *surface_area * (ambient_temerature - v.temperature);
 					// apply work to surface voxels
 					v.simulate(timestep, work);
 
