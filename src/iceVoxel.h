@@ -4,10 +4,10 @@
 using namespace std;
 
 struct IceVoxel {
-	Ice() {}
-	Ice(float temperature, float state, float volume) {
+	IceVoxel() {}
+	IceVoxel(float temperature, float state, float volume);
+	~IceVoxel();
 
-	}
 	void simulate(float timestep, float power);
 
 	//Ice properties
