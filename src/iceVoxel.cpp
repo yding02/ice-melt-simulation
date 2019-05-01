@@ -1,4 +1,4 @@
-#include "icevoxel.h"
+#include "iceVoxel.h"
 #include <math.h>
 
 IceVoxel::IceVoxel(float temperature, float state, float volume) {
@@ -7,7 +7,7 @@ IceVoxel::IceVoxel(float temperature, float state, float volume) {
 	this->volume = volume;
 }
 
-IceVoxcel::~IceVoxel() {
+IceVoxel::~IceVoxel() {
 	//deconstructor for later use
 }
 
