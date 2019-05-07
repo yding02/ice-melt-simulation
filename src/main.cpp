@@ -23,19 +23,10 @@ const char *vertexShaderSource = "#version 330 core\n"
 "    vs_out.color = aColor;\n"
 "    gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); \n"
 "}\n";
-const char *fragmentShaderSource = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"\n"
-"in vec3 fColor;\n"
-"\n"
-"void main()\n"
-"{\n"
-"    FragColor = vec4(fColor, 1.0);   \n"
-"}\n";
 
 const char *geometryShaderSource = "#version 330 core\n"
 "layout (points) in;\n"
-"layout (triangle_strip, max_vertices = 4) out;\n"
+"layout (triangle_strip, max_vertices = 16) out;\n"
 "\n"
 "in VS_OUT {\n"
 "    vec3 color;\n"
@@ -43,23 +34,58 @@ const char *geometryShaderSource = "#version 330 core\n"
 "\n"
 "out vec3 fColor;\n"
 "\n"
-"void build_house(vec4 position)\n"
-"{    \n"
-"    fColor = gs_in[0].color; // gs_in[0] since there's only one input vertex\n"
-"    gl_Position = position + vec4(-0.2, -0.2, 0.0, 0.0); // 1:bottom-left   \n"
-"    EmitVertex();   \n"
-"    gl_Position = position + vec4( 0.2, -0.2, 0.0, 0.0); // 2:bottom-right\n"
+"void build_cube(vec4 position, vec3 color)\n"
+"{\n"
+"    fColor = color;\n"
+"    gl_Position = position + vec4(-0.2, -0.2,  0.2, 0.0); // front face\n"
 "    EmitVertex();\n"
-"    gl_Position = position + vec4(-0.2,  0.2, 0.0, 0.0); // 3:top-left\n"
+"    gl_Position = position + vec4( 0.2, -0.2,  0.2, 0.0);\n"
 "    EmitVertex();\n"
-"    gl_Position = position + vec4( 0.2,  0.2, 0.0, 0.0); // 4:top-right\n"
+"    gl_Position = position + vec4(-0.2,  0.2,  0.2, 0.0);\n"
+"    EmitVertex();\n"
+"    gl_Position = position + vec4( 0.2,  0.2,  0.2, 0.0);\n"
 "    fColor = vec3(1.0, 1.0, 1.0);\n"
 "    EmitVertex();\n"
+"    fColor = color;\n"
+"    gl_Position = position + vec4(-0.2, -0.2, -0.2, 0.0); // top face\n"
+"    EmitVertex();\n"
+"    gl_Position = position + vec4( 0.2, -0.2, -0.2, 0.0);\n"
+"    EmitVertex();\n"
+"    gl_Position = position + vec4(-0.2,  0.2, -0.2, 0.0); // back face\n"
+"    EmitVertex();\n"
+"    gl_Position = position + vec4( 0.2,  0.2, -0.2, 0.0);\n"
+"    EndPrimitive();\n"
+"\n"
+"    gl_Position = position + vec4(-0.2,  0.2,  0.2, 0.0); // left face\n"
+"    EmitVertex();\n"
+"    gl_Position = position + vec4(-0.2,  0.2, -0.2, 0.0);\n"
+"    EmitVertex();\n"
+"    gl_Position = position + vec4(-0.2, -0.2,  0.2, 0.0);\n"
+"    EmitVertex();\n"
+"    gl_Position = position + vec4(-0.2, -0.2, -0.2, 0.0);\n"
+"    EmitVertex();\n"
+"    gl_Position = position + vec4( 0.2, -0.2,  0.2, 0.0); // bottom face\n"
+"    EmitVertex();\n"
+"    gl_Position = position + vec4( 0.2,  0.2,  0.2, 0.0);\n"
+"    EmitVertex();\n"
+"    gl_Position = position + vec4( 0.2, -0.2, -0.2, 0.0); // right face\n"
+"    EmitVertex();\n"
+"    gl_Position = position + vec4( 0.2,  0.2, -0.2, 0.0);\n"
 "    EndPrimitive();\n"
 "}\n"
 "\n"
 "void main() {    \n"
-"    build_house(gl_in[0].gl_Position);\n"
+"    build_cube(gl_in[0].gl_Position, gs_in[0].color);\n"
+"}\n";
+
+const char *fragmentShaderSource = "#version 330 core\n"
+"out vec4 FragColor;\n"
+"\n"
+"in vec3 fColor;\n"
+"\n"
+"void main()\n"
+"{\n"
+"    FragColor = vec4(fColor, 1.0);\n"
 "}\n";
 
 using namespace std;
@@ -99,6 +125,7 @@ int main()
   // configure global opengl state
   // -----------------------------
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
 
   // build and compile shaders
   // -------------------------
@@ -225,7 +252,7 @@ int main()
 // ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-  // make sure the viewport matches the new window dimensions; note that width and 
+  // make sure the viewport matches the new window dimensions; note that width and
   // height will be significantly larger than specified on retina displays.
   glViewport(0, 0, width, height);
 }
