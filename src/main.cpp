@@ -15,17 +15,17 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 const char *vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec2 aPos;\n"
-"layout (location = 1) in vec3 aColor;\n"
+"layout (location = 0) in vec3 aPos;\n"
+"layout (location = 1) in vec4 aColor;\n"
 "\n"
 "out VS_OUT {\n"
-"    vec3 color;\n"
+"    vec4 color;\n"
 "} vs_out;\n"
 "\n"
 "void main()\n"
 "{\n"
 "    vs_out.color = aColor;\n"
-"    gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); \n"
+"    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0); \n"
 "}\n";
 
 const char *geometryShaderSource = "#version 330 core\n"
@@ -33,14 +33,14 @@ const char *geometryShaderSource = "#version 330 core\n"
 "layout (triangle_strip, max_vertices = 16) out;\n"
 "\n"
 "in VS_OUT {\n"
-"    vec3 color;\n"
+"    vec4 color;\n"
 "} gs_in[];\n"
 "\n"
-"out vec3 fColor;\n"
+"out vec4 fColor;\n"
 "\n"
 "uniform mat4 MVP;\n"
 "\n"
-"void build_cube(vec4 position, vec3 color)\n"
+"void build_cube(vec4 position, vec4 color)\n"
 "{\n"
 "    fColor = color;\n"
 "    gl_Position = MVP * (position + vec4(-0.5, -0.5,  0.5, 0.0)); // front face\n"
@@ -50,7 +50,7 @@ const char *geometryShaderSource = "#version 330 core\n"
 "    gl_Position = MVP * (position + vec4(-0.5,  0.5,  0.5, 0.0));\n"
 "    EmitVertex();\n"
 "    gl_Position = MVP * (position + vec4( 0.5,  0.5,  0.5, 0.0));\n"
-"    fColor = vec3(1.0, 1.0, 1.0);\n"
+"    fColor = vec4(1.0, 1.0, 1.0, fColor.a);\n"
 "    EmitVertex();\n"
 "    fColor = color;\n"
 "    gl_Position = MVP * (position + vec4(-0.5,  0.5, -0.5, 0.0)); // top face\n"
@@ -76,7 +76,7 @@ const char *geometryShaderSource = "#version 330 core\n"
 "    gl_Position = MVP * (position + vec4( 0.5, -0.5, -0.5, 0.0));\n"
 "    EmitVertex();\n"
 "    gl_Position = MVP * (position + vec4( 0.5,  0.5,  0.5, 0.0)); // right face\n"
-"    fColor = vec3(1.0, 1.0, 1.0);\n"
+"    fColor = vec4(1.0, 1.0, 1.0, fColor.a);\n"
 "    EmitVertex();\n"
 "    fColor = color;\n"
 "    gl_Position = MVP * (position + vec4( 0.5,  0.5, -0.5, 0.0));\n"
@@ -91,11 +91,11 @@ const char *geometryShaderSource = "#version 330 core\n"
 const char *fragmentShaderSource = "#version 330 core\n"
 "out vec4 FragColor;\n"
 "\n"
-"in vec3 fColor;\n"
+"in vec4 fColor;\n"
 "\n"
 "void main()\n"
 "{\n"
-"    FragColor = vec4(fColor, 1.0);\n"
+"    FragColor = fColor;\n"
 "}\n";
 
 using namespace std;
@@ -201,18 +201,23 @@ int main()
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
-  int voxels_per_column = 4;
-  int voxels_per_row = 4;
-  int num_voxels = voxels_per_column * voxels_per_row;
+  int voxels_per_column = 100;
+  int voxels_per_row = 100;
+  int voxel_thicc = 100;
+  int num_voxels = voxels_per_column * voxels_per_row * voxel_thicc;
 
   vector<float> p_vec;
   for (int i = 0; i < voxels_per_row; i++) {
     for (int j = 0; j < voxels_per_column; j++) {
-      p_vec.push_back((float)i);
-      p_vec.push_back((float)j);
-      p_vec.push_back(0.0f);
-      p_vec.push_back(0.0f);
-      p_vec.push_back(1.0f);
+      for (int k = 0; k < voxel_thicc; k++) {
+        p_vec.push_back((float)i);
+        p_vec.push_back((float)j);
+        p_vec.push_back((float)k);
+        p_vec.push_back(0.0f);
+        p_vec.push_back(0.0f);
+        p_vec.push_back(1.0f);
+        p_vec.push_back(0.1f);
+      }
     }
   }
   float *points = p_vec.data();
@@ -222,42 +227,46 @@ int main()
   glGenVertexArrays(1, &VAO);
   glBindVertexArray(VAO);
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, num_voxels * 5 * sizeof(float), points, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, num_voxels * 7 * sizeof(float), points, GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), 0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), 0);
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(3 * sizeof(float)));
   glBindVertexArray(0);
 
   // generate view and projection matrices
   // -------------------------------------
   // Model matrix
   glm::mat4 model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3((-voxels_per_row + 1) / 2.0f, (-voxels_per_column + 1) / 2.0f, 0));
-  model = glm::scale(model, glm::vec3(0.5f));
+  model = glm::scale(model, glm::vec3(0.03f));
+  model = glm::translate(model, glm::vec3((-voxels_per_row + 1) / 2.0f, (-voxels_per_column + 1) / 2.0f, (-voxel_thicc + 1) / 2.0f));
 
-  // Camera matrix
-  glm::mat4 view = glm::lookAt(
-    glm::vec3(4, 3, 3), // Camera is at (4,3,3), in World Space
-    glm::vec3(0, 0, 0), // and looks at the origin
-    glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
-    );
+  
 
   // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
   glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-
-  // Compute MVP matrix and send to shader
-  glm::mat4 MVP = projection * view * model;
 
   // render loop
   // -----------
   while (!glfwWindowShouldClose(window))
   {
+
+    // Camera matrix
+    glm::mat4 view = glm::lookAt(
+      glm::vec3(4, 3, 3), // Camera is at (4,3,3), in World Space
+      glm::vec3(0, 0, 0), // and looks at the origin
+      glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+    );
+
+    // Compute MVP matrix and send to shader
+    glm::mat4 MVP = projection * view * model;
+
     // render
     // ------
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
     // draw points
     glUseProgram(shaderProgram);
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
