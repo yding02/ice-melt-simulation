@@ -1,4 +1,4 @@
-#include <glad/glad.h>
+﻿#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
@@ -133,7 +133,6 @@ int main()
 
   // build and compile shaders
   // -------------------------
-  //9.1.geometry_shader.vs", "9.1.geometry_shader.fs", "9.1.geometry_shader.gs"
    // vertex shader
   int vertexShader = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -200,13 +199,6 @@ int main()
       p_vec.push_back(1.0f);
     }
   }
-
-  //float points[] = {
-  //    -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, // top-left
-  //     0.5f,  0.5f, 0.0f, 0.0f, 1.0f, // top-right
-  //     0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // bottom-right
-  //    -0.5f, -0.5f, 0.0f, 0.0f, 1.0f  // bottom-left
-  //};
 
   float *points = p_vec.data();
 
