@@ -14,8 +14,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+unsigned int SCR_WIDTH = 800;
+unsigned int SCR_HEIGHT = 600;
 
 // camera
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
@@ -259,17 +259,12 @@ int main()
   glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(3 * sizeof(float)));
   glBindVertexArray(0);
 
-  // generate view and projection matrices
+  // generate model matrix
   // -------------------------------------
   // Model matrix
   glm::mat4 model = glm::mat4(1.0f);
   model = glm::scale(model, glm::vec3(0.03f));
   model = glm::translate(model, glm::vec3((-voxels_per_row + 1) / 2.0f, (-voxels_per_column + 1) / 2.0f, (-voxel_thicc + 1) / 2.0f));
-
-  
-
-  // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-  glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
   // render loop
   // -----------
@@ -289,6 +284,9 @@ int main()
       cameraPos + cameraFront, // and looks at the origin
       cameraUp  // Head is up (set to 0,-1,0 to look upside-down)
     );
+
+    // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
     // Compute MVP matrix and send to shader
     glm::mat4 MVP = projection * view * model;
@@ -345,7 +343,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
   // make sure the viewport matches the new window dimensions; note that width and 
   // height will be significantly larger than specified on retina displays.
-  glViewport(0, 0, width, height);
+  SCR_WIDTH = width;
+  SCR_HEIGHT = height;
+  glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 }
 
 // glfw: whenever the mouse moves, this callback is called
