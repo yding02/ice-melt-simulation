@@ -16,7 +16,7 @@ set(ICESIM_VIEWER_SOURCE
 #-------------------------------------------------------------------------------
 # Add executable
 #-------------------------------------------------------------------------------
-add_executable(icesim ${ICESIM_VIEWER_SOURCE} ${SHADERS})
+add_executable(icesim ${ICESIM_VIEWER_SOURCE})
 
 target_link_libraries(icesim
     glad

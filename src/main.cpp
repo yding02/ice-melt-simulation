@@ -53,13 +53,14 @@ const char *geometryShaderSource = "#version 330 core\n"
 "    fColor = vec3(1.0, 1.0, 1.0);\n"
 "    EmitVertex();\n"
 "    fColor = color;\n"
-"    gl_Position = MVP * (position + vec4(-0.2, -0.2, -0.2, 0.0)); // top face\n"
+"    gl_Position = MVP * (position + vec4(-0.2,  0.2, -0.2, 0.0)); // top face\n"
+"    EmitVertex();\n"
+"    gl_Position = MVP * (position + vec4( 0.2,  0.2, -0.2, 0.0));\n"
+"    EmitVertex();\n"
+"    gl_Position = MVP * (position + vec4(-0.2, -0.2, -0.2, 0.0)); // back face\n"
 "    EmitVertex();\n"
 "    gl_Position = MVP * (position + vec4( 0.2, -0.2, -0.2, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4(-0.2,  0.2, -0.2, 0.0)); // back face\n"
-"    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4( 0.2,  0.2, -0.2, 0.0));\n"
 "    EndPrimitive();\n"
 "\n"
 "    gl_Position = MVP * (position + vec4(-0.2,  0.2,  0.2, 0.0)); // left face\n"
@@ -72,11 +73,14 @@ const char *geometryShaderSource = "#version 330 core\n"
 "    EmitVertex();\n"
 "    gl_Position = MVP * (position + vec4( 0.2, -0.2,  0.2, 0.0)); // bottom face\n"
 "    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4( 0.2,  0.2,  0.2, 0.0));\n"
+"    gl_Position = MVP * (position + vec4( 0.2, -0.2, -0.2, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4( 0.2, -0.2, -0.2, 0.0)); // right face\n"
+"    gl_Position = MVP * (position + vec4( 0.2,  0.2,  0.2, 0.0)); // right face\n"
+"    fColor = vec3(1.0, 1.0, 1.0);\n"
 "    EmitVertex();\n"
+"    fColor = color;\n"
 "    gl_Position = MVP * (position + vec4( 0.2,  0.2, -0.2, 0.0));\n"
+"    EmitVertex();\n"
 "    EndPrimitive();\n"
 "}\n"
 "\n"
@@ -199,6 +203,8 @@ int main()
   // ------------------------------------------------------------------
   int voxels_per_column = 4;
   int voxels_per_row = 4;
+  int num_voxels = voxels_per_column * voxels_per_row;
+
   vector<float> p_vec;
   for (int i = 0; i < voxels_per_row; i++) {
     for (int j = 0; j < voxels_per_column; j++) {
@@ -209,7 +215,6 @@ int main()
       p_vec.push_back(1.0f);
     }
   }
-
   float *points = p_vec.data();
 
   unsigned int VBO, VAO;
@@ -217,7 +222,7 @@ int main()
   glGenVertexArrays(1, &VAO);
   glBindVertexArray(VAO);
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * p_vec.size(), points, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, num_voxels * 5 * sizeof(float), points, GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), 0);
   glEnableVertexAttribArray(1);
@@ -257,7 +262,7 @@ int main()
     glUseProgram(shaderProgram);
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
     glBindVertexArray(VAO);
-    glDrawArrays(GL_POINTS, 0, p_vec.size());
+    glDrawArrays(GL_POINTS, 0, num_voxels);
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     // -------------------------------------------------------------------------------
