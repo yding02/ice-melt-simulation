@@ -9,29 +9,22 @@
 #include <vector>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void mouse_move_callback(GLFWwindow* window, double xpos, double ypos);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window);
 
 // settings
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
 
-// camera
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+float camera_theta = 30;
+float camera_phi = 30;
+float camera_dist = 6;
+float rotation_speed = 0.3f;
+float zoom_speed = 0.1f;
 
-bool firstMouse = true;
-float yaw = -90.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
-float pitch = 0.0f;
-float lastX = 800.0f / 2.0;
-float lastY = 600.0 / 2.0;
-float fov = 45.0f;
-
-// timing
-float deltaTime = 0.0f;	// time between current frame and last frame
-float lastFrame = 0.0f;
+bool mousePressed;
+double lastX, lastY;
 
 const char *vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
@@ -201,11 +194,9 @@ int main()
   }
   glfwMakeContextCurrent(window);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-  glfwSetCursorPosCallback(window, mouse_callback);
+  glfwSetCursorPosCallback(window, mouse_move_callback);
+  glfwSetMouseButtonCallback(window, mouse_button_callback);
   glfwSetScrollCallback(window, scroll_callback);
-
-  // tell GLFW to capture our mouse
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   // glad: load all OpenGL function pointers
   // ---------------------------------------
@@ -219,6 +210,8 @@ int main()
   // -----------------------------
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // build and compile shaders
   // -------------------------
@@ -245,6 +238,7 @@ int main()
       }
     }
   }
+
   float *points = p_vec.data();
 
   unsigned int VBO, VAO;
@@ -270,20 +264,22 @@ int main()
   // -----------
   while (!glfwWindowShouldClose(window))
   {
-    // per-frame time logic
-    float currentFrame = glfwGetTime();
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame;
-
-    // input
-    processInput(window);
+    // generate view and projection matrices
+    // -------------------------------------
+    // Compute camera position
+    float theta = glm::radians(camera_theta);
+    float phi = glm::radians(camera_phi);
+    float cos_phi = cos(phi);
+    glm::vec3 camera_pos = glm::vec3(camera_dist * cos_phi * sin(theta),
+                                     camera_dist * sin(phi),
+                                     camera_dist * cos_phi * cos(theta));
 
     // Camera matrix
     glm::mat4 view = glm::lookAt(
-      cameraPos, // Camera is at (4,3,3), in World Space
-      cameraPos + cameraFront, // and looks at the origin
-      cameraUp  // Head is up (set to 0,-1,0 to look upside-down)
-    );
+      camera_pos, // Camera is at (4,3,3), in World Space
+      glm::vec3(0, 0, 0), // and looks at the origin
+      glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+      );
 
     // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -295,8 +291,7 @@ int main()
     // ------
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_BLEND);
+
     // draw points
     glUseProgram(shaderProgram);
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
@@ -318,25 +313,6 @@ int main()
   return 0;
 }
 
-
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window)
-{
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    glfwSetWindowShouldClose(window, true);
-
-  float cameraSpeed = 2.5 * deltaTime;
-  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    cameraPos += cameraSpeed * cameraFront;
-  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    cameraPos -= cameraSpeed * cameraFront;
-  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-}
-
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -350,48 +326,33 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+void mouse_move_callback(GLFWwindow* window, double xpos, double ypos)
 {
-  if (firstMouse)
-  {
-    lastX = xpos;
-    lastY = ypos;
-    firstMouse = false;
+  float xoffset = (float)(xpos - lastX);
+  float yoffset = (float)(lastY - ypos); // reversed since y-coordinates go from bottom to top
+
+  if (mousePressed) {
+    camera_theta -= rotation_speed * xoffset;
+    camera_phi -= rotation_speed * yoffset;
+    if (abs(camera_phi) >= 90) camera_phi = signbit(camera_phi) ? -89.999f : 89.999f;
   }
 
-  float xoffset = xpos - lastX;
-  float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
   lastX = xpos;
   lastY = ypos;
+}
 
-  float sensitivity = 0.1f; // change this value to your liking
-  xoffset *= sensitivity;
-  yoffset *= sensitivity;
-
-  yaw += xoffset;
-  pitch += yoffset;
-
-  // make sure that when pitch is out of bounds, screen doesn't get flipped
-  if (pitch > 89.0f)
-    pitch = 89.0f;
-  if (pitch < -89.0f)
-    pitch = -89.0f;
-
-  glm::vec3 front;
-  front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-  front.y = sin(glm::radians(pitch));
-  front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-  cameraFront = glm::normalize(front);
+// glfw: whenever a mouse button is pressed or released, this callback is called
+// ---------------------------------------------------------------------------------------------
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+  if (button == GLFW_MOUSE_BUTTON_LEFT) {
+    mousePressed = (action == GLFW_PRESS);
+  }
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-  if (fov >= 1.0f && fov <= 45.0f)
-    fov -= yoffset;
-  if (fov <= 1.0f)
-    fov = 1.0f;
-  if (fov >= 45.0f)
-    fov = 45.0f;
+  camera_dist = glm::max(0.0f, camera_dist - zoom_speed * (float)yoffset);
 }
