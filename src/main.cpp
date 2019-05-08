@@ -12,7 +12,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 800;
+const unsigned int SCR_HEIGHT = 600;
 
 const char *vertexShaderSource = "#version 330 core\n"
 "layout (location = 0) in vec2 aPos;\n"
@@ -43,43 +43,43 @@ const char *geometryShaderSource = "#version 330 core\n"
 "void build_cube(vec4 position, vec3 color)\n"
 "{\n"
 "    fColor = color;\n"
-"    gl_Position = MVP * (position + vec4(-0.2, -0.2,  0.2, 0.0)); // front face\n"
+"    gl_Position = MVP * (position + vec4(-0.5, -0.5,  0.5, 0.0)); // front face\n"
 "    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4( 0.2, -0.2,  0.2, 0.0));\n"
+"    gl_Position = MVP * (position + vec4( 0.5, -0.5,  0.5, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4(-0.2,  0.2,  0.2, 0.0));\n"
+"    gl_Position = MVP * (position + vec4(-0.5,  0.5,  0.5, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4( 0.2,  0.2,  0.2, 0.0));\n"
+"    gl_Position = MVP * (position + vec4( 0.5,  0.5,  0.5, 0.0));\n"
 "    fColor = vec3(1.0, 1.0, 1.0);\n"
 "    EmitVertex();\n"
 "    fColor = color;\n"
-"    gl_Position = MVP * (position + vec4(-0.2,  0.2, -0.2, 0.0)); // top face\n"
+"    gl_Position = MVP * (position + vec4(-0.5,  0.5, -0.5, 0.0)); // top face\n"
 "    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4( 0.2,  0.2, -0.2, 0.0));\n"
+"    gl_Position = MVP * (position + vec4( 0.5,  0.5, -0.5, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4(-0.2, -0.2, -0.2, 0.0)); // back face\n"
+"    gl_Position = MVP * (position + vec4(-0.5, -0.5, -0.5, 0.0)); // back face\n"
 "    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4( 0.2, -0.2, -0.2, 0.0));\n"
+"    gl_Position = MVP * (position + vec4( 0.5, -0.5, -0.5, 0.0));\n"
 "    EmitVertex();\n"
 "    EndPrimitive();\n"
 "\n"
-"    gl_Position = MVP * (position + vec4(-0.2,  0.2,  0.2, 0.0)); // left face\n"
+"    gl_Position = MVP * (position + vec4(-0.5,  0.5,  0.5, 0.0)); // left face\n"
 "    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4(-0.2,  0.2, -0.2, 0.0));\n"
+"    gl_Position = MVP * (position + vec4(-0.5,  0.5, -0.5, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4(-0.2, -0.2,  0.2, 0.0));\n"
+"    gl_Position = MVP * (position + vec4(-0.5, -0.5,  0.5, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4(-0.2, -0.2, -0.2, 0.0));\n"
+"    gl_Position = MVP * (position + vec4(-0.5, -0.5, -0.5, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4( 0.2, -0.2,  0.2, 0.0)); // bottom face\n"
+"    gl_Position = MVP * (position + vec4( 0.5, -0.5,  0.5, 0.0)); // bottom face\n"
 "    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4( 0.2, -0.2, -0.2, 0.0));\n"
+"    gl_Position = MVP * (position + vec4( 0.5, -0.5, -0.5, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = MVP * (position + vec4( 0.2,  0.2,  0.2, 0.0)); // right face\n"
+"    gl_Position = MVP * (position + vec4( 0.5,  0.5,  0.5, 0.0)); // right face\n"
 "    fColor = vec3(1.0, 1.0, 1.0);\n"
 "    EmitVertex();\n"
 "    fColor = color;\n"
-"    gl_Position = MVP * (position + vec4( 0.2,  0.2, -0.2, 0.0));\n"
+"    gl_Position = MVP * (position + vec4( 0.5,  0.5, -0.5, 0.0));\n"
 "    EmitVertex();\n"
 "    EndPrimitive();\n"
 "}\n"
@@ -208,8 +208,8 @@ int main()
   vector<float> p_vec;
   for (int i = 0; i < voxels_per_row; i++) {
     for (int j = 0; j < voxels_per_column; j++) {
-      p_vec.push_back(-0.6 + i * 0.4);
-      p_vec.push_back(-0.6 + j * 0.4);
+      p_vec.push_back((float)i);
+      p_vec.push_back((float)j);
       p_vec.push_back(0.0f);
       p_vec.push_back(0.0f);
       p_vec.push_back(1.0f);
