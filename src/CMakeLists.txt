@@ -11,15 +11,12 @@ set(ICESIM_VIEWER_SOURCE
     # Application
     main.cpp
     iceSimulator.cpp
-
-    # Camera
-    # camera.cpp
 )
 
 #-------------------------------------------------------------------------------
 # Add executable
 #-------------------------------------------------------------------------------
-add_executable(icesim ${ICESIM_VIEWER_SOURCE})
+add_executable(icesim ${ICESIM_VIEWER_SOURCE} ${SHADERS})
 
 target_link_libraries(icesim
     glad
