@@ -38,43 +38,45 @@ const char *geometryShaderSource = "#version 330 core\n"
 "\n"
 "out vec3 fColor;\n"
 "\n"
+"uniform mat4 MVP;\n"
+"\n"
 "void build_cube(vec4 position, vec3 color)\n"
 "{\n"
 "    fColor = color;\n"
-"    gl_Position = position + vec4(-0.2, -0.2,  0.2, 0.0); // front face\n"
+"    gl_Position = MVP * (position + vec4(-0.2, -0.2,  0.2, 0.0)); // front face\n"
 "    EmitVertex();\n"
-"    gl_Position = position + vec4( 0.2, -0.2,  0.2, 0.0);\n"
+"    gl_Position = MVP * (position + vec4( 0.2, -0.2,  0.2, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = position + vec4(-0.2,  0.2,  0.2, 0.0);\n"
+"    gl_Position = MVP * (position + vec4(-0.2,  0.2,  0.2, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = position + vec4( 0.2,  0.2,  0.2, 0.0);\n"
+"    gl_Position = MVP * (position + vec4( 0.2,  0.2,  0.2, 0.0));\n"
 "    fColor = vec3(1.0, 1.0, 1.0);\n"
 "    EmitVertex();\n"
 "    fColor = color;\n"
-"    gl_Position = position + vec4(-0.2, -0.2, -0.2, 0.0); // top face\n"
+"    gl_Position = MVP * (position + vec4(-0.2, -0.2, -0.2, 0.0)); // top face\n"
 "    EmitVertex();\n"
-"    gl_Position = position + vec4( 0.2, -0.2, -0.2, 0.0);\n"
+"    gl_Position = MVP * (position + vec4( 0.2, -0.2, -0.2, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = position + vec4(-0.2,  0.2, -0.2, 0.0); // back face\n"
+"    gl_Position = MVP * (position + vec4(-0.2,  0.2, -0.2, 0.0)); // back face\n"
 "    EmitVertex();\n"
-"    gl_Position = position + vec4( 0.2,  0.2, -0.2, 0.0);\n"
+"    gl_Position = MVP * (position + vec4( 0.2,  0.2, -0.2, 0.0));\n"
 "    EndPrimitive();\n"
 "\n"
-"    gl_Position = position + vec4(-0.2,  0.2,  0.2, 0.0); // left face\n"
+"    gl_Position = MVP * (position + vec4(-0.2,  0.2,  0.2, 0.0)); // left face\n"
 "    EmitVertex();\n"
-"    gl_Position = position + vec4(-0.2,  0.2, -0.2, 0.0);\n"
+"    gl_Position = MVP * (position + vec4(-0.2,  0.2, -0.2, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = position + vec4(-0.2, -0.2,  0.2, 0.0);\n"
+"    gl_Position = MVP * (position + vec4(-0.2, -0.2,  0.2, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = position + vec4(-0.2, -0.2, -0.2, 0.0);\n"
+"    gl_Position = MVP * (position + vec4(-0.2, -0.2, -0.2, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = position + vec4( 0.2, -0.2,  0.2, 0.0); // bottom face\n"
+"    gl_Position = MVP * (position + vec4( 0.2, -0.2,  0.2, 0.0)); // bottom face\n"
 "    EmitVertex();\n"
-"    gl_Position = position + vec4( 0.2,  0.2,  0.2, 0.0);\n"
+"    gl_Position = MVP * (position + vec4( 0.2,  0.2,  0.2, 0.0));\n"
 "    EmitVertex();\n"
-"    gl_Position = position + vec4( 0.2, -0.2, -0.2, 0.0); // right face\n"
+"    gl_Position = MVP * (position + vec4( 0.2, -0.2, -0.2, 0.0)); // right face\n"
 "    EmitVertex();\n"
-"    gl_Position = position + vec4( 0.2,  0.2, -0.2, 0.0);\n"
+"    gl_Position = MVP * (position + vec4( 0.2,  0.2, -0.2, 0.0));\n"
 "    EndPrimitive();\n"
 "}\n"
 "\n"
@@ -94,6 +96,64 @@ const char *fragmentShaderSource = "#version 330 core\n"
 
 using namespace std;
 
+int compileShaders() {
+   // vertex shader
+  int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+  glCompileShader(vertexShader);
+  // check for shader compile errors
+  int success;
+  char infoLog[512];
+  glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+  if (!success)
+  {
+    glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+    std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+  }
+
+  // geometry shader
+  int geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+  glShaderSource(geometryShader, 1, &geometryShaderSource, NULL);
+  glCompileShader(geometryShader);
+  // check for shader compile errors
+  glGetShaderiv(geometryShader, GL_COMPILE_STATUS, &success);
+  if (!success)
+  {
+    glGetShaderInfoLog(geometryShader, 512, NULL, infoLog);
+    std::cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n" << infoLog << std::endl;
+  }
+
+  // fragment shader
+  int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+  glCompileShader(fragmentShader);
+  // check for shader compile errors
+  glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+  if (!success)
+  {
+    glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+    std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+  }
+
+  // link shaders
+  int shaderProgram = glCreateProgram();
+  glAttachShader(shaderProgram, vertexShader);
+  glAttachShader(shaderProgram, geometryShader);
+  glAttachShader(shaderProgram, fragmentShader);
+  glLinkProgram(shaderProgram);
+  // check for linking errors
+  glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+  if (!success) {
+    glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+    std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+  }
+  glDeleteShader(vertexShader);
+  glDeleteShader(fragmentShader);
+  glDeleteShader(geometryShader);
+
+  return shaderProgram;
+}
+
 int main()
 {
   // glfw: initialize and configure
@@ -107,8 +167,8 @@ int main()
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
 #endif
 
-    // glfw window creation
-    // --------------------
+  // glfw window creation
+  // --------------------
   GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
   if (window == NULL)
   {
@@ -133,57 +193,7 @@ int main()
 
   // build and compile shaders
   // -------------------------
-   // vertex shader
-  int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-  glCompileShader(vertexShader);
-  // check for shader compile errors
-  int success;
-  char infoLog[512];
-  glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-  if (!success)
-  {
-    glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-    std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-  }
-  // fragment shader
-  int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-  glCompileShader(fragmentShader);
-  // check for shader compile errors
-  glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-  if (!success)
-  {
-    glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-    std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-  }
-  // geometry shader
-  int geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
-  glShaderSource(geometryShader, 1, &geometryShaderSource, NULL);
-  glCompileShader(geometryShader);
-  // check for shader compile errors
-  glGetShaderiv(geometryShader, GL_COMPILE_STATUS, &success);
-  if (!success)
-  {
-    glGetShaderInfoLog(geometryShader, 512, NULL, infoLog);
-    std::cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n" << infoLog << std::endl;
-  }
-
-  // link shaders
-  int shaderProgram = glCreateProgram();
-  glAttachShader(shaderProgram, vertexShader);
-  glAttachShader(shaderProgram, fragmentShader);
-  glAttachShader(shaderProgram, geometryShader);
-  glLinkProgram(shaderProgram);
-  // check for linking errors
-  glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-  if (!success) {
-    glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-    std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-  }
-  glDeleteShader(vertexShader);
-  glDeleteShader(fragmentShader);
-  glDeleteShader(geometryShader);
+  int shaderProgram = compileShaders();
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
@@ -214,6 +224,26 @@ int main()
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
   glBindVertexArray(0);
 
+  // generate view and projection matrices
+  // -------------------------------------
+  // Model matrix
+  glm::mat4 model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3((-voxels_per_row + 1) / 2.0f, (-voxels_per_column + 1) / 2.0f, 0));
+  model = glm::scale(model, glm::vec3(0.5f));
+
+  // Camera matrix
+  glm::mat4 view = glm::lookAt(
+    glm::vec3(4, 3, 3), // Camera is at (4,3,3), in World Space
+    glm::vec3(0, 0, 0), // and looks at the origin
+    glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+    );
+
+  // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+  glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+  // Compute MVP matrix and send to shader
+  glm::mat4 MVP = projection * view * model;
+
   // render loop
   // -----------
   while (!glfwWindowShouldClose(window))
@@ -224,8 +254,8 @@ int main()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // draw points
-    //shader.use();
     glUseProgram(shaderProgram);
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
     glBindVertexArray(VAO);
     glDrawArrays(GL_POINTS, 0, p_vec.size());
 
