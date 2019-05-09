@@ -17,6 +17,10 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
 
+int voxels_per_column = 100;
+int voxels_per_row = 100;
+int voxel_thicc = 100;
+
 float camera_theta = 30;
 float camera_phi = 30;
 float camera_dist = 6;
@@ -219,9 +223,6 @@ int main()
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
-  int voxels_per_column = 100;
-  int voxels_per_row = 100;
-  int voxel_thicc = 100;
   int num_voxels = voxels_per_column * voxels_per_row * voxel_thicc;
 
   vector<float> p_vec;
@@ -257,8 +258,11 @@ int main()
   // -------------------------------------
   // Model matrix
   glm::mat4 model = glm::mat4(1.0f);
-  model = glm::scale(model, glm::vec3(0.03f));
-  model = glm::translate(model, glm::vec3((-voxels_per_row + 1) / 2.0f, (-voxels_per_column + 1) / 2.0f, (-voxel_thicc + 1) / 2.0f));
+  model = glm::scale(model,
+    glm::vec3(2.0f / glm::max(glm::max(voxels_per_row, voxels_per_column), voxel_thicc)));
+  model = glm::translate(model, glm::vec3((-voxels_per_row + 1) / 2.0f,
+                                          (-voxels_per_column + 1) / 2.0f,
+                                          (-voxel_thicc + 1) / 2.0f));
 
   // render loop
   // -----------
@@ -289,7 +293,7 @@ int main()
 
     // render
     // ------
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // draw points
