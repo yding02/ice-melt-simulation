@@ -33,6 +33,8 @@ struct Ice {
 	int num_length_points;
 	int num_height_points;
 	const float air_transfer_coeff = 100;
+
+	vector<IceVoxel> neighbors;
 };
 
 
