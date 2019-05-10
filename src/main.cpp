@@ -8,6 +8,8 @@
 #include <iostream>
 #include <vector>
 
+#include "ice.h"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_move_callback(GLFWwindow* window, double xpos, double ypos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
@@ -17,9 +19,15 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
 
-int voxels_per_column = 100;
-int voxels_per_row = 100;
-int voxel_thicc = 100;
+int voxels_per_column = 10;
+int voxels_per_row = 10;
+int voxel_thicc = 10;
+float voxel_edge_length = 1;
+
+float initial_temperature = 270;
+float ambient_temerature = 275;
+float steps_per_frame = 50;
+float timestep = 1.0f / 60.0f / steps_per_frame;
 
 float camera_theta = 30;
 float camera_phi = 30;
@@ -174,6 +182,27 @@ int compileShaders() {
   return shaderProgram;
 }
 
+// Extraction of voxel information from ice struct
+vector<float> ice_to_voxels(vector<float>& voxel_data, Ice& ice) {
+  voxel_data.clear();
+	vector<IceVoxel>& ice_voxels = ice.ice_voxels;
+	for (int z = 0; z < voxel_thicc; z++) {
+		for (int y = 0; y < voxels_per_column; y++) {
+			for (int x = 0; x < voxels_per_row; x++) {
+				int index = x + y * voxels_per_row + z * voxels_per_row * voxels_per_column;
+				voxel_data.push_back((float)x);
+				voxel_data.push_back((float)y);
+				voxel_data.push_back((float)z);
+				voxel_data.push_back(0.0); //R
+				voxel_data.push_back(0.0); //G
+				voxel_data.push_back(1.0); //B
+				voxel_data.push_back(ice_voxels[index].state); //A
+			}
+		}
+	}
+	return voxel_data;
+}
+
 int main()
 {
   // glfw: initialize and configure
@@ -225,29 +254,11 @@ int main()
   // ------------------------------------------------------------------
   int num_voxels = voxels_per_column * voxels_per_row * voxel_thicc;
 
-  vector<float> p_vec;
-  for (int i = 0; i < voxels_per_row; i++) {
-    for (int j = 0; j < voxels_per_column; j++) {
-      for (int k = 0; k < voxel_thicc; k++) {
-        p_vec.push_back((float)i);
-        p_vec.push_back((float)j);
-        p_vec.push_back((float)k);
-        p_vec.push_back(0.0f);
-        p_vec.push_back(0.0f);
-        p_vec.push_back(1.0f);
-        p_vec.push_back(0.1f);
-      }
-    }
-  }
-
-  float *points = p_vec.data();
-
   unsigned int VBO, VAO;
   glGenBuffers(1, &VBO);
   glGenVertexArrays(1, &VAO);
   glBindVertexArray(VAO);
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, num_voxels * 7 * sizeof(float), points, GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), 0);
   glEnableVertexAttribArray(1);
@@ -255,7 +266,7 @@ int main()
   glBindVertexArray(0);
 
   // generate model matrix
-  // -------------------------------------
+  // ---------------------
   // Model matrix
   glm::mat4 model = glm::mat4(1.0f);
   model = glm::scale(model,
@@ -264,10 +275,28 @@ int main()
                                           (-voxels_per_column + 1) / 2.0f,
                                           (-voxel_thicc + 1) / 2.0f));
 
+  // initialize ice simulation
+  // ---------------------
+  Ice ice = Ice(voxel_edge_length, 
+    voxels_per_row, 
+    voxels_per_column, 
+    voxel_thicc,
+    initial_temperature,
+    ambient_temerature,
+    timestep);
+
+	vector<float> voxel_data = vector<float>();
+
   // render loop
   // -----------
   while (!glfwWindowShouldClose(window))
   {
+    // run ice simulation
+    // ------------------
+    for (int i = 0; i < steps_per_frame; i++) {
+      ice.simulate();
+    }
+
     // generate view and projection matrices
     // -------------------------------------
     // Compute camera position
@@ -297,6 +326,8 @@ int main()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // draw points
+    ice_to_voxels(voxel_data, ice);
+    glBufferData(GL_ARRAY_BUFFER, num_voxels * 7 * sizeof(float), voxel_data.data(), GL_STATIC_DRAW);
     glUseProgram(shaderProgram);
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
     glBindVertexArray(VAO);
