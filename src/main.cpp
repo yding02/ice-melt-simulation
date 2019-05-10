@@ -10,6 +10,9 @@
 
 #include "ice.h"
 
+bool pause_sim = false;
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_move_callback(GLFWwindow* window, double xpos, double ypos);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
@@ -231,6 +234,8 @@ int main()
   glfwSetCursorPosCallback(window, mouse_move_callback);
   glfwSetMouseButtonCallback(window, mouse_button_callback);
   glfwSetScrollCallback(window, scroll_callback);
+  glfwSetKeyCallback(window, key_callback);
+
 
   // glad: load all OpenGL function pointers
   // ---------------------------------------
@@ -292,11 +297,15 @@ int main()
   // -----------
   while (!glfwWindowShouldClose(window))
   {
+    
     // run ice simulation
     // ------------------
+    
     for (int i = 0; i < steps_per_frame; i++) {
-      ice.simulate();
+      if (!pause_sim)
+        ice.simulate();
     }
+    
 
     // generate view and projection matrices
     // -------------------------------------
@@ -348,6 +357,15 @@ int main()
   glfwTerminate();
   return 0;
 }
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    glfwSetWindowShouldClose(window, GLFW_TRUE);
+  if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+    pause_sim = !pause_sim;
+}
+
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
