@@ -64,32 +64,38 @@ const char *geometryShaderSource = "#version 330 core\n"
 "} gs_in[];\n"
 "\n"
 "out vec4 fColor;\n"
+"out vec3 normal;\n"
+"out vec3 FragPos;\n"
 "\n"
 "uniform mat4 MVP;\n"
+"uniform mat4 model;\n"
 "\n"
 "void build_cube(vec4 position, vec4 color)\n"
 "{\n"
+"    normal = vec3(0, 0, 1);\n"
 "    fColor = color;\n"
 "    gl_Position = MVP * (position + vec4(-0.5, -0.5,  0.5, 0.0)); // front face\n"
+"    FragPos = vec3(model * (position + vec4(-0.5, -0.5,  0.5, 0.0)));\n"
 "    EmitVertex();\n"
 "    gl_Position = MVP * (position + vec4( 0.5, -0.5,  0.5, 0.0));\n"
 "    EmitVertex();\n"
 "    gl_Position = MVP * (position + vec4(-0.5,  0.5,  0.5, 0.0));\n"
 "    EmitVertex();\n"
 "    gl_Position = MVP * (position + vec4( 0.5,  0.5,  0.5, 0.0));\n"
-"    fColor = vec4(1.0, 1.0, 1.0, fColor.a);\n"
 "    EmitVertex();\n"
-"    fColor = color;\n"
+"    normal = vec3(0, 1, 0);\n"
 "    gl_Position = MVP * (position + vec4(-0.5,  0.5, -0.5, 0.0)); // top face\n"
 "    EmitVertex();\n"
 "    gl_Position = MVP * (position + vec4( 0.5,  0.5, -0.5, 0.0));\n"
 "    EmitVertex();\n"
+"    normal = vec3(0, 0, -1);\n"
 "    gl_Position = MVP * (position + vec4(-0.5, -0.5, -0.5, 0.0)); // back face\n"
 "    EmitVertex();\n"
 "    gl_Position = MVP * (position + vec4( 0.5, -0.5, -0.5, 0.0));\n"
 "    EmitVertex();\n"
 "    EndPrimitive();\n"
 "\n"
+"    normal = vec3(-1, 0, 0);\n"
 "    gl_Position = MVP * (position + vec4(-0.5,  0.5,  0.5, 0.0)); // left face\n"
 "    EmitVertex();\n"
 "    gl_Position = MVP * (position + vec4(-0.5,  0.5, -0.5, 0.0));\n"
@@ -98,14 +104,14 @@ const char *geometryShaderSource = "#version 330 core\n"
 "    EmitVertex();\n"
 "    gl_Position = MVP * (position + vec4(-0.5, -0.5, -0.5, 0.0));\n"
 "    EmitVertex();\n"
+"    normal = vec3(0, -1, 0);\n"
 "    gl_Position = MVP * (position + vec4( 0.5, -0.5,  0.5, 0.0)); // bottom face\n"
 "    EmitVertex();\n"
 "    gl_Position = MVP * (position + vec4( 0.5, -0.5, -0.5, 0.0));\n"
 "    EmitVertex();\n"
+"    normal = vec3(1, 0, 0);\n"
 "    gl_Position = MVP * (position + vec4( 0.5,  0.5,  0.5, 0.0)); // right face\n"
-"    fColor = vec4(1.0, 1.0, 1.0, fColor.a);\n"
 "    EmitVertex();\n"
-"    fColor = color;\n"
 "    gl_Position = MVP * (position + vec4( 0.5,  0.5, -0.5, 0.0));\n"
 "    EmitVertex();\n"
 "    EndPrimitive();\n"
@@ -116,13 +122,19 @@ const char *geometryShaderSource = "#version 330 core\n"
 "}\n";
 
 const char *fragmentShaderSource = "#version 330 core\n"
+"in vec3 normal;\n"
+"in vec3 FragPos;\n"
 "out vec4 FragColor;\n"
 "\n"
 "in vec4 fColor;\n"
 "\n"
 "void main()\n"
 "{\n"
-"    FragColor = fColor;\n"
+"    vec3 norm = normalize(normal);\n"
+"    vec3 lightDir = normalize(vec3(0, 0, 3) - FragPos);\n"
+"    float diff = max(dot(norm, lightDir), 0.0);\n"
+"    vec4 diffuse = vec4(diff * vec3(1, 1, 1), 1);\n"
+"    FragColor = diffuse * fColor;\n"
 "}\n";
 
 using namespace std;
@@ -197,10 +209,10 @@ vector<float> ice_to_voxels(vector<float>& voxel_data, Ice& ice) {
 				voxel_data.push_back((float)x);
 				voxel_data.push_back((float)y);
 				voxel_data.push_back((float)z);
-				voxel_data.push_back(0.0); //R
-				voxel_data.push_back(0.0); //G
-				voxel_data.push_back(1.0); //B
-				voxel_data.push_back(ice_voxels[index].state); //A
+				voxel_data.push_back(63.0f/255); //R
+				voxel_data.push_back(208.0f/255); //G
+				voxel_data.push_back(212.0f/255); //B
+        voxel_data.push_back(ice_voxels[index].state); //A
 			}
 		}
 	}
@@ -340,6 +352,7 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, voxel_data.size() * sizeof(float), voxel_data.data(), GL_STATIC_DRAW);
     glUseProgram(shaderProgram);
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, &model[0][0]);
     glBindVertexArray(VAO);
     glDrawArrays(GL_POINTS, 0, voxel_data.size() / 7);
 
