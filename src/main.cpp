@@ -1,4 +1,4 @@
-﻿#include <glad/glad.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
@@ -19,14 +19,14 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
 
-int voxels_per_column = 10;
-int voxels_per_row = 10;
-int voxel_thicc = 10;
+int voxels_per_column = 20;
+int voxels_per_row = 20;
+int voxel_thicc = 20;
 float voxel_edge_length = 1;
 
 float initial_temperature = 270;
 float ambient_temerature = 275;
-float steps_per_frame = 50;
+float steps_per_frame = 1;
 float timestep = 1.0f / 60.0f / steps_per_frame;
 
 float camera_theta = 30;
@@ -190,6 +190,7 @@ vector<float> ice_to_voxels(vector<float>& voxel_data, Ice& ice) {
 		for (int y = 0; y < voxels_per_column; y++) {
 			for (int x = 0; x < voxels_per_row; x++) {
 				int index = x + y * voxels_per_row + z * voxels_per_row * voxels_per_column;
+        if (ice_voxels[index].state == 0) continue;
 				voxel_data.push_back((float)x);
 				voxel_data.push_back((float)y);
 				voxel_data.push_back((float)z);
@@ -327,11 +328,11 @@ int main()
 
     // draw points
     ice_to_voxels(voxel_data, ice);
-    glBufferData(GL_ARRAY_BUFFER, num_voxels * 7 * sizeof(float), voxel_data.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, voxel_data.size() * sizeof(float), voxel_data.data(), GL_STATIC_DRAW);
     glUseProgram(shaderProgram);
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "MVP"), 1, GL_FALSE, &MVP[0][0]);
     glBindVertexArray(VAO);
-    glDrawArrays(GL_POINTS, 0, num_voxels);
+    glDrawArrays(GL_POINTS, 0, voxel_data.size() / 7);
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     // -------------------------------------------------------------------------------
