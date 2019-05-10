@@ -29,5 +29,5 @@ void IceVoxel::simulate(float timestep, float power) {
 	}
 
 	float melted_volume = energy / fusion_enthalpy / density;
-	state = fmaxf(0, state - melted_volume/volume);
+	state = fmaxf(0.0, state - melted_volume/volume);
 }
