@@ -11,6 +11,8 @@
 #include "ice.h"
 
 bool pause_sim = false;
+bool reset_sim = false;
+//bool rightly = false;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -22,13 +24,13 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
 
-int voxels_per_column = 20;
-int voxels_per_row = 20;
-int voxel_thicc = 20;
+int voxels_per_column = 50;
+int voxels_per_row = 50;
+int voxel_thicc = 50;
 float voxel_edge_length = 1;
 
 float initial_temperature = 270;
-float ambient_temerature = 275;
+float ambient_temerature = 274;
 float steps_per_frame = 1;
 float timestep = 1.0f / 60.0f / steps_per_frame;
 
@@ -316,6 +318,16 @@ int main()
     for (int i = 0; i < steps_per_frame; i++) {
       if (!pause_sim)
         ice.simulate();
+      if (reset_sim) {
+          ice.reset();
+          reset_sim = false;
+      }
+      /*
+      if (rightly) {
+          //ice.simulate();
+          rightly = !rightly;
+      }
+      */
     }
     
 
@@ -377,6 +389,22 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     glfwSetWindowShouldClose(window, GLFW_TRUE);
   if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
     pause_sim = !pause_sim;
+  if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+    //replay 
+    pause_sim = true;
+    reset_sim = true;
+  }
+
+  /*
+  
+  if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
+    //replay 
+    pause_sim = true;
+    rightly = true;
+  }
+  */
+    
+
 }
 
 

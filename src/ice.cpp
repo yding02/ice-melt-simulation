@@ -10,6 +10,7 @@ Ice::Ice(	float voxel_edge_length, int num_width_points,
 	this->num_length_points = num_length_points;
 	this->num_height_points = num_height_points;
 	this->ambient_temerature = ambient_temerature;
+	this->initial_temperature = initial_temperature;
 	this->timestep = timestep;
 	width = voxel_edge_length * num_width_points;
 	length = voxel_edge_length * num_length_points;
@@ -24,6 +25,36 @@ Ice::Ice(	float voxel_edge_length, int num_width_points,
 	}
 	set_surface();
 }
+
+
+
+
+void Ice::reset() {
+	/*
+	this->voxel_edge_length = voxel_edge_length;
+	this->num_width_points = num_width_points;
+	this->num_length_points = num_length_points;
+	this->num_height_points = num_height_points;
+	this->ambient_temerature = ambient_temerature;
+	this->initial_temperature = initial_temperature;
+	this->timestep = timestep;
+	*/
+	width = voxel_edge_length * num_width_points;
+	length = voxel_edge_length * num_length_points;
+	height = voxel_edge_length * num_height_points;
+	ice_voxels = vector<IceVoxel>();
+
+	float volume = voxel_edge_length * voxel_edge_length * voxel_edge_length;
+
+	ice_voxels = vector<IceVoxel>();
+	for (int i = 0; i < num_width_points * num_length_points * num_height_points; i++) {
+		ice_voxels.push_back(IceVoxel(initial_temperature, 1, volume));
+	}
+	set_surface();
+	
+}
+
+
 
 Ice::~Ice() {
 	ice_voxels.clear();

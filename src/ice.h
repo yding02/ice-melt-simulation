@@ -14,6 +14,7 @@ struct Ice {
 		float initial_temperature, float ambient_temerature,
 		float timestep);
 	~Ice();
+	void reset();
 
 	void set_surface();
 
@@ -28,6 +29,7 @@ struct Ice {
 	float length;
 	float height;
 	float ambient_temerature;
+	float initial_temperature;
 	float timestep;
 	int num_width_points;
 	int num_length_points;
