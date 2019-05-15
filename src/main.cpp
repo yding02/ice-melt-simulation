@@ -126,6 +126,7 @@ const char *geometryShaderSource = "#version 330 core\n"
 const char *fragmentShaderSource = "#version 330 core\n"
 "in vec3 normal;\n"
 "in vec3 FragPos;\n"
+//"uniform vec3 viewPos;\n"
 "out vec4 FragColor;\n"
 "\n"
 "in vec4 fColor;\n"
@@ -135,7 +136,18 @@ const char *fragmentShaderSource = "#version 330 core\n"
 "    vec3 norm = normalize(normal);\n"
 "    vec3 lightDir = normalize(vec3(0, 0, 3) - FragPos);\n"
 "    float diff = max(dot(norm, lightDir), 0.0);\n"
-"    vec4 diffuse = vec4(diff * vec3(1, 1, 1), 1);\n"
+
+//"    uniform vec3 viewPos;\n"
+//"    lightingShader.setVec3(""""viewPos"""", camera.Position);\n"
+"    vec3 viewDir = normalize(vec3(0, 0, 0)-FragPos);\n"
+"    float specular = .224;\n"
+"    vec3 reflect = reflect(-lightDir, norm);\n"
+"    float sp = pow(max(dot(viewDir, lightDir), 0.0), 32);\n"
+"    vec3 spec = specular * sp * vec3(1, 1, 1);\n"
+"    vec4 diffuse = vec4((diff * vec3(1, 1, 1) + spec), 1);\n"
+
+
+//"    vec4 diffuse = vec4((diff * vec3(1, 1, 1)), 1);\n"
 "    FragColor = diffuse * fColor;\n"
 "}\n";
 
