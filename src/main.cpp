@@ -10,7 +10,7 @@
 
 #include "ice.h"
 
-bool pause_sim = false;
+bool pause_sim = true;
 bool reset_sim = false;
 //bool rightly = false;
 
@@ -24,9 +24,9 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
 
-int voxels_per_column = 50;
-int voxels_per_row = 50;
-int voxel_thicc = 50;
+int voxels_per_column = 10;
+int voxels_per_row = 10;
+int voxel_thicc = 10;
 float voxel_edge_length = 1;
 
 float initial_temperature = 270;
@@ -389,7 +389,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     glfwSetWindowShouldClose(window, GLFW_TRUE);
   if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
     pause_sim = !pause_sim;
-  if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+  if (key == GLFW_KEY_ENTER && action == GLFW_PRESS) {
     //replay 
     pause_sim = true;
     reset_sim = true;
