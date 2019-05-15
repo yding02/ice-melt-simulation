@@ -2,6 +2,7 @@
 #define ICE_H
 
 #include "iceVoxel.h"
+#include "data_struct.h"
 #include <vector>
 
 using namespace std;
@@ -17,12 +18,14 @@ struct Ice {
 	void reset();
 
 	void set_surface();
-
+	void set_neighbors();
 	void simulate();
 
 	//Ice properties
 	vector<IceVoxel> ice_voxels;
 	//vector<Vector3D> point_heat_sources;
+
+	LinkedList* surface_voxels;
 	float voxel_edge_length;
 
 	float width;
@@ -35,8 +38,6 @@ struct Ice {
 	int num_length_points;
 	int num_height_points;
 	const float air_transfer_coeff = 100;
-
-	vector<IceVoxel> neighbors;
 };
 
 

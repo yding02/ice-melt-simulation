@@ -8,6 +8,10 @@ set(ICESIM_VIEWER_SOURCE
     ice.cpp
     iceVoxel.cpp
 
+    # Data Structures
+    data_struct.h
+    data_struct.cpp
+
     # Application
     main.cpp
     iceSimulator.cpp

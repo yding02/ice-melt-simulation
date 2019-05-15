@@ -5,6 +5,7 @@ IceVoxel::IceVoxel(float temperature, float state, float volume) {
 	this->temperature = temperature;
 	this->state = state;
 	this->volume = volume;
+	neighbors = new vector<IceVoxel*>();
 	prev_state = state;
 }
 
