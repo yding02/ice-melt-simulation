@@ -142,7 +142,7 @@ const char *fragmentShaderSource = "#version 330 core\n"
 "    vec3 viewDir = normalize(vec3(0, 0, 0)-FragPos);\n"
 "    float specular = .224;\n"
 "    vec3 reflect = reflect(-lightDir, norm);\n"
-"    float sp = pow(max(dot(viewDir, lightDir), 0.0), 32);\n"
+"    float sp = pow(max(dot(norm, lightDir), 0.0), 32);\n"
 "    vec3 spec = specular * sp * vec3(1, 1, 1);\n"
 "    vec4 diffuse = vec4((diff * vec3(1, 1, 1) + spec), 1);\n"
 
@@ -248,7 +248,7 @@ int main()
 
   // glfw window creation
   // --------------------
-  GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+  GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Ice Sim", NULL, NULL);
   if (window == NULL)
   {
     std::cout << "Failed to create GLFW window" << std::endl;
