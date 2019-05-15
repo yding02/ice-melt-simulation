@@ -17,7 +17,7 @@ struct Ice {
 	void reset();
 
 	void set_surface();
-
+	void set_neighbors();
 	void simulate();
 
 	//Ice properties
@@ -35,8 +35,6 @@ struct Ice {
 	int num_length_points;
 	int num_height_points;
 	const float air_transfer_coeff = 100;
-
-	vector<IceVoxel> neighbors;
 };
 
 

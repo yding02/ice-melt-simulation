@@ -51,7 +51,7 @@ void Ice::reset() {
 		ice_voxels.push_back(IceVoxel(initial_temperature, 1, volume));
 	}
 	set_surface();
-	
+	set_neighbors();	
 }
 
 
@@ -79,6 +79,40 @@ void Ice::set_surface() {
 			}
 		}
 	}
+}
+
+void Ice::set_neighbors() {
+	for (int z = 0; z < num_height_points; z++) {
+		for (int y = 0; y < num_length_points; y++) {
+			for (int x = 0; x < num_width_points; x++) {
+				IceVoxel& v = ice_voxels[x + y * num_width_points + z * num_width_points * num_length_points];
+				if (x >= 1) {
+					int n_index = (x - 1) + y * num_width_points + z * num_width_points * num_length_points;
+					v.neighbors.push_back( &ice_voxels[n_index]);
+				}
+				if (x < num_width_points - 1) {
+					int n_index = (x + 1) + y * num_width_points + z * num_width_points * num_length_points;
+					v.neighbors.push_back( &ice_voxels[n_index]);
+				}
+				if (y >= 1) {
+					int n_index = x + (y - 1) * num_width_points + z * num_width_points * num_length_points;
+					v.neighbors.push_back( &ice_voxels[n_index]);						
+				}
+				if (y < num_length_points - 1) {
+					int n_index = x + (y + 1) * num_width_points + z * num_width_points * num_length_points;
+					v.neighbors.push_back( &ice_voxels[n_index]);					
+				}
+				if (z >= 1) {
+					int n_index = x + y * num_width_points + (z - 1) * num_width_points * num_length_points;
+					v.neighbors.push_back( &ice_voxels[n_index]);					
+				}
+				if (z < num_height_points - 1) {
+					int n_index = x + y * num_width_points + (z + 1) * num_width_points * num_length_points;
+					v.neighbors.push_back( &ice_voxels[n_index]);					
+				}
+			}
+		}
+	}	
 }
 
 void Ice::simulate() {
