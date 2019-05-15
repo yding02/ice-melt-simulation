@@ -7,6 +7,8 @@ IceVoxel::IceVoxel(float temperature, float state, float volume) {
 	this->volume = volume;
 	neighbors = new vector<IceVoxel*>();
 	prev_state = state;
+	surface = false;
+	prev_surface = false;
 }
 
 IceVoxel::~IceVoxel() {
