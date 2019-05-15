@@ -18,7 +18,7 @@ struct IceVoxel {
 	float volume;
 	bool  surface;
 	bool  prev_surface;
-	vector<IceVoxel*> neighbors;
+	vector<IceVoxel*>* neighbors;
 	const float melting_point = 273; // K
 	const float fusion_enthalpy = 333.55; // J/g
 	const float density = 0.9167; // g/cm^3

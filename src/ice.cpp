@@ -15,6 +15,7 @@ Ice::Ice(	float voxel_edge_length, int num_width_points,
 	width = voxel_edge_length * num_width_points;
 	length = voxel_edge_length * num_length_points;
 	height = voxel_edge_length * num_height_points;
+	surface_voxels = new LinkedList();
 	ice_voxels = vector<IceVoxel>();
 
 	float volume = voxel_edge_length * voxel_edge_length * voxel_edge_length;
@@ -24,6 +25,7 @@ Ice::Ice(	float voxel_edge_length, int num_width_points,
 		ice_voxels.push_back(IceVoxel(initial_temperature, 1, volume));
 	}
 	set_surface();
+	set_neighbors();
 }
 
 
@@ -64,17 +66,30 @@ void Ice::set_surface() {
 	for (int z = 0; z < num_height_points; z++) {
 		for (int y = 0; y < num_length_points; y++) {
 			for (int x = 0; x < num_width_points; x++) {
+				int i = x + y * num_width_points + z * num_width_points * num_length_points;
 				if (x - 1 < 0 || x + 1 == num_width_points) {
-					ice_voxels[x + y * num_width_points + z * num_width_points * num_length_points].surface = true;
-					ice_voxels[x + y * num_width_points + z * num_width_points * num_length_points].prev_surface = true;					
+					if (ice_voxels[i].surface) {
+						continue;
+					}
+					ice_voxels[i].surface = true;
+					ice_voxels[i].prev_surface = true;
+					surface_voxels->insert(&ice_voxels[i]);					
 				}
 				else if (y - 1 < 0 || y +1 == num_length_points) {
-					ice_voxels[x + y * num_width_points + z * num_width_points * num_length_points].surface = true;
-					ice_voxels[x + y * num_width_points + z * num_width_points * num_length_points].prev_surface = true;
+					if (ice_voxels[i].surface) {
+						continue;
+					}
+					ice_voxels[i].surface = true;
+					ice_voxels[i].prev_surface = true;
+					surface_voxels->insert(&ice_voxels[i]);					
 				}
 				else if (z - 1 < 0 || z + 1 == num_height_points) {
-					ice_voxels[x + y * num_width_points + z * num_width_points * num_length_points].surface = true;
-					ice_voxels[x + y * num_width_points + z * num_width_points * num_length_points].prev_surface = true;
+					if (ice_voxels[i].surface) {
+						continue;
+					}					
+					ice_voxels[i].surface = true;
+					ice_voxels[i].prev_surface = true;
+					surface_voxels->insert(&ice_voxels[i]);					
 				}					
 			}
 		}
@@ -88,27 +103,27 @@ void Ice::set_neighbors() {
 				IceVoxel& v = ice_voxels[x + y * num_width_points + z * num_width_points * num_length_points];
 				if (x >= 1) {
 					int n_index = (x - 1) + y * num_width_points + z * num_width_points * num_length_points;
-					v.neighbors.push_back( &ice_voxels[n_index]);
+					v.neighbors->push_back( &ice_voxels[n_index]);
 				}
 				if (x < num_width_points - 1) {
 					int n_index = (x + 1) + y * num_width_points + z * num_width_points * num_length_points;
-					v.neighbors.push_back( &ice_voxels[n_index]);
+					v.neighbors->push_back( &ice_voxels[n_index]);
 				}
 				if (y >= 1) {
 					int n_index = x + (y - 1) * num_width_points + z * num_width_points * num_length_points;
-					v.neighbors.push_back( &ice_voxels[n_index]);						
+					v.neighbors->push_back( &ice_voxels[n_index]);						
 				}
 				if (y < num_length_points - 1) {
 					int n_index = x + (y + 1) * num_width_points + z * num_width_points * num_length_points;
-					v.neighbors.push_back( &ice_voxels[n_index]);					
+					v.neighbors->push_back( &ice_voxels[n_index]);					
 				}
 				if (z >= 1) {
 					int n_index = x + y * num_width_points + (z - 1) * num_width_points * num_length_points;
-					v.neighbors.push_back( &ice_voxels[n_index]);					
+					v.neighbors->push_back( &ice_voxels[n_index]);					
 				}
 				if (z < num_height_points - 1) {
 					int n_index = x + y * num_width_points + (z + 1) * num_width_points * num_length_points;
-					v.neighbors.push_back( &ice_voxels[n_index]);					
+					v.neighbors->push_back( &ice_voxels[n_index]);					
 				}
 			}
 		}
@@ -124,89 +139,55 @@ void Ice::simulate() {
 		v.prev_state = v.state;
 	}
 
-	vector<IceVoxel*> neighbors;
-	int x, y, z;
-	for (z = 0; z < num_height_points; z++) {
-		for (y = 0; y < num_length_points; y++) {
-			for (x = 0; x < num_width_points; x++) {
-				IceVoxel& v = ice_voxels[x + y * num_width_points + z * num_width_points * num_length_points];
-				if (v.prev_state <= 0) {
-					//v is already melted
-					continue;
-				}
-				if (v.prev_surface) {
-					//v is a surface voxel
+	surface_voxels->clean();
 
-					//calcuate surface area
-					int num_neighbors = 0;
-					neighbors.clear();
-					//a voxel has 6 faces
-					if (x >= 1) {
-						int n_index = (x - 1) + y * num_width_points + z * num_width_points * num_length_points;
-						IceVoxel& n = ice_voxels[n_index];
-						if (n.prev_state > 0.0) {
-							num_neighbors++;
-							neighbors.push_back(&n);
-						}
-					}
-					if (x < num_width_points - 1) {
-						int n_index = (x + 1) + y * num_width_points + z * num_width_points * num_length_points;
-						IceVoxel& n = ice_voxels[n_index];
-						if (n.prev_state > 0.0) {
-							num_neighbors++;
-							neighbors.push_back(&n);
-						}						
-					}
-					if (y >= 1) {
-						int n_index = x + (y - 1) * num_width_points + z * num_width_points * num_length_points;
-						IceVoxel& n = ice_voxels[n_index];
-						if (n.prev_state > 0.0) {
-							num_neighbors++;
-							neighbors.push_back(&n);
-						}						
-					}
-					if (y < num_length_points - 1) {
-						int n_index = x + (y + 1) * num_width_points + z * num_width_points * num_length_points;
-						IceVoxel& n = ice_voxels[n_index];
-						if (n.prev_state > 0.0) {
-							num_neighbors++;
-							neighbors.push_back(&n);							
-						}						
-					}
-					if (z >= 1) {
-						int n_index = x + y * num_width_points + (z - 1) * num_width_points * num_length_points;
-						IceVoxel& n = ice_voxels[n_index];
-						if (n.prev_state > 0.0) {
-							num_neighbors++;
-							neighbors.push_back(&n);
-						}						
-					}
-					if (z < num_height_points - 1) {
-						int n_index = x + y * num_width_points + (z + 1) * num_width_points * num_length_points;
-						IceVoxel& n = ice_voxels[n_index];
-						if (n.prev_state > 0.0) {
-							num_neighbors++;
-							neighbors.push_back(&n);
-						}						
-					}
+	vector<IceVoxel*> neighbors = vector<IceVoxel*>();
 
-					float surface_area = (6 - num_neighbors) * voxel_edge_length * voxel_edge_length;
-					float work = air_transfer_coeff *surface_area * (ambient_temerature - v.temperature);
-					// apply work to surface voxels
-					v.simulate(timestep, work);
+	Node* cur = surface_voxels->get_first();
+	int count = 0;
+	while (cur != 0) {
+		count++;
+		//printf("count %i\n", count);
+		int num_neighbors = 0;
+		neighbors.clear();
 
-					if (v.state <= 0.0) {
-						//v completely melted after timestep
+		if (cur->val->prev_state <= 0) {
+			cur = cur->get_next();
+			continue;
+		}
 
-						//neighbors are now surface
-						for (IceVoxel* n : neighbors) {
-							n->surface = true;
-						}
-					}
-				}
+		if (cur->val->prev_surface == false) {
+			break;
+		}
+
+		//printf("current neighor size %i\n", cur->val->neighbors->size());
+		for (IceVoxel* neighbor : *cur->val->neighbors) {
+			if (neighbor->state > 0 ) {
+				num_neighbors++;
+				neighbors.push_back(neighbor);
 			}
 		}
-	}	
+
+
+		float surface_area = (6 - num_neighbors) * voxel_edge_length * voxel_edge_length;
+		float work = air_transfer_coeff *surface_area * (ambient_temerature - cur->val->temperature);
+		// apply work to surface voxels
+		cur->val->simulate(timestep, work);
+
+		if (cur->val->state <= 0.0) {
+			//v completely melted after timestep
+
+			//neighbors are now surface
+			for (IceVoxel* n : neighbors) {
+				if (n->surface || n->prev_surface) {
+					continue;
+				}
+				n->surface = true;
+				surface_voxels->insert(n);
+			}
+		}
+		cur = cur->get_next();
+	}
 
 
 	// TODO: Point heat source

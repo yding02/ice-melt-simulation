@@ -2,6 +2,7 @@
 #define ICE_H
 
 #include "iceVoxel.h"
+#include "data_struct.h"
 #include <vector>
 
 using namespace std;
@@ -23,6 +24,8 @@ struct Ice {
 	//Ice properties
 	vector<IceVoxel> ice_voxels;
 	//vector<Vector3D> point_heat_sources;
+
+	LinkedList* surface_voxels;
 	float voxel_edge_length;
 
 	float width;

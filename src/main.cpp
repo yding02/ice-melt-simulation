@@ -24,9 +24,9 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
 
-int voxels_per_column = 20;
-int voxels_per_row = 20;
-int voxel_thicc = 20;
+int voxels_per_column = 50;
+int voxels_per_row = 50;
+int voxel_thicc = 50;
 float voxel_edge_length = 1;
 
 float initial_temperature = 270;
